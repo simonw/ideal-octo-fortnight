@@ -75,7 +75,7 @@ def test_two_migration_sets(migrations, migrations2):
 
 def test_order_does_not_matter(migrations, migrations_not_ordered_alphabetically):
     db1 = sqlite_utils.Database(memory=True)
-    db2 = db = sqlite_utils.Database(memory=True)
+    db2 = sqlite_utils.Database(memory=True)
     migrations.apply(db1)
     migrations_not_ordered_alphabetically.apply(db2)
     assert db1.schema == db2.schema
