@@ -129,7 +129,6 @@ with runner.isolated_filesystem():
         db["creatures"].add_column("shoe_size", int)
         db["creatures"].transform()
     """))
-    breakpoint()
     result = runner.invoke(cli, ["migrate", "creatures.db", "--verbose"])
 cog.out(
     "```\n{}\n```".format(result.output.strip())
