@@ -34,7 +34,7 @@ migration = Migrations("creatures")
 
 # Use this decorator against functions that implement migrations
 @migration()
-def m001_create_table(db):
+def create_table(db):
     # db is a sqlite-utils Database instance
     db["creatures"].create(
         {"id": int, "name": str, "species": str},
@@ -42,7 +42,7 @@ def m001_create_table(db):
     )
 
 @migration()
-def m002_add_weight(db):
+def add_weight(db):
     # db is a sqlite-utils Database instance
     db["creatures"].add_column("weight", float)
 ```
@@ -68,7 +68,7 @@ sqlite-utils migrate creatures.db path/to/parent/
 When applying a single migrations file you can use the `--stop-before` option to apply all migrations up to but excluding the specified migration:
 
 ```bash
-sqlite-utils migrate creatures.db path/to/migrations.py --stop-before m002_add_weight
+sqlite-utils migrate creatures.db path/to/migrations.py --stop-before add_weight
 ```
 
 ## Listing migrations
@@ -83,17 +83,13 @@ The output will look something like this:
 Migrations for: creatures
 
   Applied:
-    m001_create_table - 2023-07-23 04:09:40.324002
-    m002_add_weight - 2023-07-23 04:09:40.324649
-    m003_add_age - 2023-07-23 04:09:44.441616
-    m003_cleanup - 2023-07-23 04:09:44.443394
-    m004_cleanup - 2023-07-23 04:09:44.444184
-    m005_cleanup - 2023-07-23 04:09:44.445389
-    m006_cleanup - 2023-07-23 04:09:44.446742
-    m007_cleanup - 2023-07-23 04:16:02.529983
+    create_table - 2023-07-23 04:09:40.324002
+    add_weight - 2023-07-23 04:09:40.324649
+    add_age - 2023-07-23 04:09:44.441616
+    cleanup_columns - 2023-07-23 04:09:44.443394
 
   Pending:
-    m008_cleanup
+    drop_table
 ```
 
 ## Verbose mode
