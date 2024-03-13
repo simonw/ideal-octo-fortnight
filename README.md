@@ -104,31 +104,71 @@ Add `-v` or `--verbose` for verbose output, which will show the schema before an
 sqlite-utils migrate creatures.db --verbose
 ```
 Example output:
+
+<!-- [[[cog
+import cog
+from sqlite_utils.cli import cli
+import sqlite_utils
+import textwrap
+from click.testing import CliRunner
+runner = CliRunner()
+with runner.isolated_filesystem():
+    # First migration creates the table
+    open("migrations.py", "w").write(textwrap.dedent("""
+    from sqlite_migrate import Migrations
+    migration = Migrations("demo")
+    @migration()
+    def create_table(db):
+        db["creatures"].create(
+            {"id": int, "name": str, "species": str, "weight": float},
+            pk="id",
+        )
+    """))
+    runner.invoke(cli, ["migrate", "creatures.db"])
+    # Second migration adds some columns
+    open("migrations.py", "a").write("\n\n" + textwrap.dedent("""
+    @migration()
+    def add_columns(db):
+        db["creatures"].add_column("age", int)
+        db["creatures"].add_column("shoe_size", int)
+        db["creatures"].transform()
+    """))
+    breakpoint()
+    result = runner.invoke(cli, ["migrate", "creatures.db", "--verbose"])
+cog.out(
+    "```\n{}\n```".format(result.output.strip())
+)
+]]] -->
 ```
 Migrating creatures.db
 
 Schema before:
 
-  CREATE TABLE "_sqlite_migrations" (
+  CREATE TABLE [_sqlite_migrations] (
+     [id] INTEGER PRIMARY KEY,
      [migration_set] TEXT,
      [name] TEXT,
-     [applied_at] TEXT,
-     PRIMARY KEY ([migration_set], [name])
+     [applied_at] TEXT
   );
+  CREATE UNIQUE INDEX [idx__sqlite_migrations_migration_set_name]
+      ON [_sqlite_migrations] ([migration_set], [name]);
   CREATE TABLE [creatures] (
      [id] INTEGER PRIMARY KEY,
      [name] TEXT,
-     [species] TEXT
-  , [weight] FLOAT);
+     [species] TEXT,
+     [weight] FLOAT
+  );
 
 Schema after:
 
-  CREATE TABLE "_sqlite_migrations" (
+  CREATE TABLE [_sqlite_migrations] (
+     [id] INTEGER PRIMARY KEY,
      [migration_set] TEXT,
      [name] TEXT,
-     [applied_at] TEXT,
-     PRIMARY KEY ([migration_set], [name])
+     [applied_at] TEXT
   );
+  CREATE UNIQUE INDEX [idx__sqlite_migrations_migration_set_name]
+      ON [_sqlite_migrations] ([migration_set], [name]);
   CREATE TABLE "creatures" (
      [id] INTEGER PRIMARY KEY,
      [name] TEXT,
@@ -140,18 +180,18 @@ Schema after:
 
 Schema diff:
 
-    [applied_at] TEXT,
-    PRIMARY KEY ([migration_set], [name])
-  );
+ );
+ CREATE UNIQUE INDEX [idx__sqlite_migrations_migration_set_name]
+     ON [_sqlite_migrations] ([migration_set], [name]);
 -CREATE TABLE [creatures] (
 +CREATE TABLE "creatures" (
     [id] INTEGER PRIMARY KEY,
     [name] TEXT,
--   [species] TEXT
--, [weight] FLOAT);
-+   [species] TEXT,
+    [species] TEXT,
+-   [weight] FLOAT
 +   [weight] FLOAT,
 +   [age] INTEGER,
 +   [shoe_size] INTEGER
-+);
+ );
 ```
+<!-- [[[end]]] -->
