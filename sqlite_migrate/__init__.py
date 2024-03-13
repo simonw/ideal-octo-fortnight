@@ -94,15 +94,20 @@ class Migrations:
         if not table.exists():
             table.create(
                 {
+                    "id": int,
                     "migration_set": str,
                     "name": str,
                     "applied_at": str,
                 },
-                pk=("migration_set", "name"),
+                pk="id",
             )
-        elif table.pks != ["migration_set", "name"]:
-            # This has the old primary key scheme, upgrade it
-            table.transform(pk=("migration_set", "name"))
+            table.create_index(["migration_set", "name"], unique=True)
+        elif table.pks != ["id"]:
+            # This has an older primary key scheme, upgrade it
+            table.transform(pk="id")
+            unique_indexes = {tuple(index.columns) for index in table.indexes}
+            if ("migration_set", "name") not in unique_indexes:
+                table.create_index(["migration_set", "name"], unique=True)
 
     def __repr__(self):
         return "<Migrations '{}': [{}]>".format(

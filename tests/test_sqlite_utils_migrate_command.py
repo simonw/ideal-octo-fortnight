@@ -103,11 +103,13 @@ def foo(db):
 Schema before:
 
   CREATE TABLE [_sqlite_migrations] (
+     [id] INTEGER PRIMARY KEY,
      [migration_set] TEXT,
      [name] TEXT,
-     [applied_at] TEXT,
-     PRIMARY KEY ([migration_set], [name])
+     [applied_at] TEXT
   );
+  CREATE UNIQUE INDEX [idx__sqlite_migrations_migration_set_name]
+      ON [_sqlite_migrations] ([migration_set], [name]);
   CREATE TABLE [dogs] (
      [id] INTEGER,
      [name] TEXT
@@ -137,9 +139,9 @@ def bar(db):
     expected_diff = """
 Schema diff:
 
-    [applied_at] TEXT,
-    PRIMARY KEY ([migration_set], [name])
  );
+ CREATE UNIQUE INDEX [idx__sqlite_migrations_migration_set_name]
+     ON [_sqlite_migrations] ([migration_set], [name]);
 -CREATE TABLE [dogs] (
 +CREATE TABLE "dogs" (
     [id] INTEGER,

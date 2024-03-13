@@ -81,18 +81,35 @@ def test_order_does_not_matter(migrations, migrations_not_ordered_alphabetically
     assert db1.schema == db2.schema
 
 
-def test_upgrades_sqlite_migrations_from_one_to_two_primary_keys(migrations):
+@pytest.mark.parametrize(
+    "create_table,pk",
+    (
+        # Original with pk name
+        (
+            {
+                "migration_set": str,
+                "name": str,
+                "applied_at": str,
+            },
+            "name",
+        ),
+        # Second version pk migraiton_set, name
+        (
+            {
+                "migration_set": str,
+                "name": str,
+                "applied_at": str,
+            },
+            ("migration_set", "name"),
+        ),
+    ),
+)
+def test_upgrades_sqlite_migrations(migrations, create_table, pk):
     db = sqlite_utils.Database(memory=True)
-    db["_sqlite_migrations"].create(
-        {
-            "migration_set": str,
-            "name": str,
-            "applied_at": str,
-        },
-        pk="name",
-    )
+    table = db["_sqlite_migrations"].create(create_table, pk=pk)
+    print(table.schema)
     # Applying migrations should fix that
     assert db.table_names() == ["_sqlite_migrations"]
-    assert db["_sqlite_migrations"].pks == ["name"]
+    assert db["_sqlite_migrations"].pks == [pk] if isinstance(pk, str) else pk
     migrations.apply(db)
-    assert db["_sqlite_migrations"].pks == ["migration_set", "name"]
+    assert db["_sqlite_migrations"].pks == ["id"]
